@@ -57,19 +57,26 @@ public class Library
 
     public User SearchUserByID(int id)
     {
-        return users!.FirstOrDefault(user => user.UserID == id)!; 
+        return users.FirstOrDefault(user => user.UserID == id)!; 
     }
 
     public void RegisterLend(Book book, User user)
     {
-        User foundUser = users.FirstOrDefault(x => x.UserID == user.UserID);
-        foundUser.Borrow(book.Title);
+        User? foundUser = users.FirstOrDefault(u => u.UserID == user.UserID);
+
+        if (foundUser != null)
+        {
+            foundUser.Borrow(book);
+        }
+        User.PrintUserData();
     }
 
     public void RegisterReturn(Book book, User user)
     {
-        User userInfo = users.FirstOrDefault(x => x.UserID == user.UserID);
-        user.Return(book.Title);
+        User? userInfo = users.FirstOrDefault(x => x.UserID == user.UserID);
+        user.Return(book);
+        User.PrintUserData();
+
     }
 
     // mejorar
