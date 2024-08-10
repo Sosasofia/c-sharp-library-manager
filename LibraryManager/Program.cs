@@ -45,7 +45,7 @@ class Program
                     CreateUser();
                     break;
                 case "5":
-                    UserById(); 
+                    UserById();
                     break;
                 case "6":
                     Lend();
@@ -61,7 +61,7 @@ class Program
                     continueExecution = false;
                     break;
                 case "a":
-                   
+
                     break;
                 default:
                     Console.WriteLine(Constants.InvalidOption);
@@ -225,7 +225,7 @@ class Program
         }
         else
         {
-            Book book = Library.SearchByTitle(filter); 
+            Book book = Library.SearchByTitle(filter);
             Print(book);
         }
     }
@@ -236,7 +236,7 @@ class Program
         Console.Write(Constants.RequestUserName);
         var name = Console.ReadLine();
 
-        if(string.IsNullOrEmpty(name))
+        if (string.IsNullOrEmpty(name))
         {
             return new Response()
             {
@@ -245,7 +245,7 @@ class Program
             };
         }
 
-        if(Library.users!.Exists(x => x.UserName == name))
+        if (Library.users!.Exists(x => x.UserName == name))
         {
             return new Response()
             {
@@ -264,7 +264,7 @@ class Program
     {
         Response res = UserValidation();
 
-        if(res.Status == 200)
+        if (res.Status == 200)
         {
             Library.AddUser(res.User!.UserName!);
             Console.WriteLine(Constants.UserCreated);
@@ -306,7 +306,7 @@ class Program
             Status = 200,
         };
     }
-    
+
     public static void UserById()
     {
         Response res = ValidateID();
@@ -341,8 +341,8 @@ class Program
             };
         }
 
-        // Usur does not exist
-        if(!Library.users!.Exists(x => x.UserID.Equals(userId)))
+        // User does not exist
+        if (!Library.users!.Exists(x => x.UserID.Equals(userId)))
         {
             return new Response()
             {
@@ -382,7 +382,7 @@ class Program
         return new Response
         {
             Lend = new Lend() { BookTitle = bookTitle, UserId = userId },
-            Book =  new Book() { Title = bookTitle },
+            Book = new Book() { Title = bookTitle },
             User = new User() { UserID = userId },
             Status = 200
         };
@@ -390,11 +390,11 @@ class Program
 
     private static void Lend()
     {
-        Response res = InitializeLend(); 
+        Response res = InitializeLend();
 
         if (res.Status == 200)
         {
-           
+
             Library.lendings!.Add(new Lend()
             {
                 BookTitle = res.Lend!.BookTitle,
@@ -427,7 +427,7 @@ class Program
             };
         }
 
-        if(!Library.users!.Exists(x => x.UserID.Equals(id)))
+        if (!Library.users.Exists(x => x.UserID.Equals(id)))
         {
             return new Response()
             {
@@ -474,15 +474,16 @@ class Program
 
         if (res.Status == 200)
         {
-            string? title = res.Book?.Title;
-            int id = res.User!.UserID;
+            string? title = res.Book.Title;
+            int id = res.User.UserID;
 
-
-            Lend book = Library.lendings!.FindLast(x => x.UserId == id && x.BookTitle.Equals(title) && x.ReturnDate == null)!;
+            Lend? book = Library.lendings.FindLast(x => x.UserId == id && x.BookTitle.Equals(title) && x.ReturnDate == null);
+            Library.RegisterReturn(res.Book, res.User);
 
             if (book != null)
             {
                 book.ReturnDate = DateTime.Now;
+                Library.RegisterReturn(res.Book, res.User);
                 Console.WriteLine("Correct return");
             };
         }
@@ -491,5 +492,4 @@ class Program
             Console.WriteLine($"Error: {res.Message}");
         }
     }
-
 }

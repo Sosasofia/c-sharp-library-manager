@@ -4,34 +4,40 @@ public class User
 {
     public int UserID { get; set; }
     public string? UserName { get; set; }
-    public List<Book> Borrowed { get; set; } = new List<Book>();
+    private static List<Book>? borrowed = new List<Book>();
 
 
-    // arreglar
-    public void Borrow(string? title)
+    public void Borrow(Book book)
     {
-        Book book = Borrowed.Find(x => x.Title == title);
+        Book? borrowedBook = borrowed.FirstOrDefault(b => b.Title == book.Title);
 
-        if (book != null)
+        if (borrowedBook != null && !borrowedBook.Available)
         {
-            book.Available = true;
-        }
-
-        Borrowed.Add(new Book() { Title = title, Available = true });
-    }
-
-    // arreglar
-    public void Return(string? title)
-    {
-        Book borrow = Borrowed.FindLast(book => book.Title == title && book.Available == true);
-
-        if (borrow == null)
-        {
-            Console.WriteLine("Error");
+            borrowedBook.Available = true;
         }
         else
         {
-            borrow.Available = false;
+            borrowed.Add(new Book() { Available = true, Title = book.Title });
+        }
+
+    }
+
+    public void Return(Book book)
+    {
+        Book? borrowedBook = borrowed.FirstOrDefault(b => b.Title.Equals(book.Title));
+
+        if (borrowedBook != null)
+        {
+            borrowedBook.Available = false;
+        }
+    }
+
+    public static void PrintUserData()
+    {
+        foreach (var book in borrowed)
+        {
+            Console.WriteLine(book.Title);
+            Console.WriteLine(book.Available);
         }
     }
 }
