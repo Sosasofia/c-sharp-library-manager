@@ -14,21 +14,15 @@ public class Library
         books.Add(book);
     }
 
-    // User implementations
-    public void AddUser(string name)
+    public void AddUser(User user)
     {
         int id = users.Count();
 
         users!.Add(new User()
         {
-            UserName = name,
+            UserName = user.UserName,
             UserID = id + 1,
         });
-    }
-
-    public User SearchUserByID(int id)
-    {
-        return users.FirstOrDefault(user => user.UserID == id)!;
     }
 
     public void RegisterLend(Book book, User user)

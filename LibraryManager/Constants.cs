@@ -2,7 +2,7 @@
 public static class Constants
 {
     public const string Title = "\tLibrary Manager\r";
-    public const string Separator = "**************************************\n";
+    public const string Separator = "\t**************************************\n";
 
     public const string MenuMessage = "\tMenu: \n";
     public const string AddBook = "\t1 - Add book";
@@ -19,15 +19,16 @@ public static class Constants
     public const string InvalidID = "Invalid ID";
     public const string InvalidYear = "Invalid year range";
     public const string Error = "Error";
-    public const string ErrorMessage = "Error: {0}";
+    public const string ErrorMessage = "\tError: {0}";
     public const string NotFound = "Not Found";
     public const string NoBooks = "There are no registered books";
-    public const string EmptyInput = "Input field can not be empty";
+    public const string EmptyInput = "{0} input field can not be empty";
     public const string NumberInput = "Input must be a number";
     public const string BookNotFound = "Book with title *{0}* not found!";
+    public const string UserNotFound = "User with ID *{0}* not found!";
     public const string BookAlreadyExists = "Book title already exist";
     public const string UserAlreadyExists = "Username already exists";
-    public const string AlredyExists = "Already exists {0}";
+    public const string AlredyExists = "{0} already exists";
 
     public const string RequestTitle = "\tEnter book title: ";
     public const string RequestAuthor = "\tEnter book author: ";

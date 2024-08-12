@@ -163,7 +163,7 @@ class Program
 
         if (!Int32.TryParse(input, out int publishedYear))
         {
-            
+
             return new Response()
             {
                 Message = Constants.NumberInput,
@@ -247,16 +247,16 @@ class Program
             return new Response()
             {
                 Status = 400,
-                Message = "User can not be empty"
+                Message = string.Format(Constants.EmptyInput, "Username")
             };
         }
 
-        if (Library.users!.Exists(x => x.UserName == name))
+        if (Library.users!.Exists(user => user.UserName == name))
         {
             return new Response()
             {
                 Status = 400,
-                Message = Constants.UserAlreadyExists
+                Message = string.Format(Constants.AlredyExists, "Username")
             };
         }
 
@@ -272,12 +272,12 @@ class Program
 
         if (res.Status == 200)
         {
-            Library.AddUser(res.User!.UserName!);
+            Library.AddUser(res.User!);
             Console.WriteLine(Constants.UserCreated);
         }
         else
         {
-            Console.WriteLine($"Error: {res.Message}");
+            Console.WriteLine(Constants.ErrorMessage, res.Message);
         }
     }
 
@@ -287,21 +287,21 @@ class Program
         Console.Write(Constants.RequestUserId);
         var input = Console.ReadLine();
 
-        if (!Int32.TryParse(input, out int id))
+        if (!int.TryParse(input, out int id))
         {
             return new Response()
             {
-                Message = Constants.InvalidID,
+                Message = string.Format(Constants.NumberInput, "ID"),
                 Status = 400
             };
         }
 
-        if (!Library.users!.Exists(x => x.UserID == id))
+        if (!Library.users.Exists(user => user.UserID == id))
         {
             return new Response()
             {
+                Message = string.Format(Constants.UserNotFound, id),
                 Status = 400,
-                Message = "Does not exist user with that id"
             };
         }
 
@@ -319,14 +319,13 @@ class Program
 
         if (res.Status == 200)
         {
-            int id = res.User!.UserID;
-            User? user = Library.SearchUserByID(id);
+            User? result = Library.users.FirstOrDefault(user => user.UserID.Equals(res.User!.UserID));
             Console.WriteLine("\n\tUser found!");
-            Console.WriteLine("\tUsername: {0}", user.UserName);
+            Console.WriteLine("\tUsername: {0}", result!.UserName);
         }
         else
         {
-            Console.WriteLine($"Error: {res.Message}");
+            Console.WriteLine(Constants.ErrorMessage, res.Message);
         }
     }
 
