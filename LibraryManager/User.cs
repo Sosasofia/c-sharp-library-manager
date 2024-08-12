@@ -9,7 +9,7 @@ public class User
 
     public void Borrow(Book book)
     {
-        Book? borrowedBook = borrowed.FirstOrDefault(b => b.Title == book.Title);
+        Book? borrowedBook = borrowed!.FirstOrDefault(b => b.Title == book.Title);
 
         if (borrowedBook != null && !borrowedBook.Available)
         {
@@ -17,27 +17,17 @@ public class User
         }
         else
         {
-            borrowed.Add(new Book() { Available = true, Title = book.Title });
+            borrowed!.Add(new Book() { Available = true, Title = book.Title });
         }
-
     }
 
     public void Return(Book book)
     {
-        Book? borrowedBook = borrowed.FirstOrDefault(b => b.Title.Equals(book.Title));
+        Book? borrowedBook = borrowed!.FirstOrDefault(b => b.Title!.Equals(book.Title));
 
         if (borrowedBook != null)
         {
             borrowedBook.Available = false;
-        }
-    }
-
-    public static void PrintUserData()
-    {
-        foreach (var book in borrowed)
-        {
-            Console.WriteLine(book.Title);
-            Console.WriteLine(book.Available);
         }
     }
 }

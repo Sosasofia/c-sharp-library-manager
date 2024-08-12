@@ -1,5 +1,5 @@
 ﻿namespace LibraryManager;
-public class Lend
+public class Loan
 {
     //public Guid UserId { get; set; }
     public int UserId { get; set; }
