@@ -26,6 +26,7 @@ public static class Constants
     public const string NumberInput = "Input must be a number";
     public const string BookNotFound = "Book with title *{0}* not found!";
     public const string UserNotFound = "User with ID *{0}* not found!";
+    public const string LoanNotFound = "Loan not found!";
     public const string BookAlreadyExists = "Book title already exist";
     public const string UserAlreadyExists = "Username already exists";
     public const string AlredyExists = "{0} already exists";

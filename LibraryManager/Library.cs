@@ -6,7 +6,7 @@ public class Library
 
     public List<User> users = new List<User>();
 
-    public List<Lend> lendings = new List<Lend>();
+    public List<Loan> loans = new List<Loan>();
 
 
     public void AddBook(Book book)
@@ -33,21 +33,18 @@ public class Library
         {
             foundUser.Borrow(book);
         }
-        User.PrintUserData();
     }
 
     public void RegisterReturn(Book book, User user)
     {
-        User? userInfo = users.FirstOrDefault(x => x.UserID == user.UserID);
+        User? userInfo = users.FirstOrDefault(u => u.UserID == user.UserID);
         user.Return(book);
-        User.PrintUserData();
-
     }
 
     // mejorar
     public void LoanHistory()
     {
         Console.WriteLine("Book title\t\t\tLend Date\t\t\tReturn Date");
-        lendings!.ForEach(lend => Console.WriteLine($"{lend.BookTitle}\t\t{lend.LendDate.ToString()}\t\t{lend.ReturnDate.ToString()}"));
+        loans!.ForEach(lend => Console.WriteLine($"{lend.BookTitle}\t\t{lend.LendDate.ToString()}\t\t{lend.ReturnDate.ToString()}"));
     }
 };

@@ -5,5 +5,5 @@ public class Response
     public string? Message { get; set; }
     public Book? Book { get; set; }
     public User? User { get; set; }
-    public Lend? Lend { get; set; }
+    public Loan? Loan { get; set; }
 }

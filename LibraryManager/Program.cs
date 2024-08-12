@@ -336,22 +336,21 @@ class Program
         Console.Write(Constants.RequestUserId);
         var id = Console.ReadLine();
 
-        // Id must be a number
-        if (!Int32.TryParse(id, out int userId))
+
+        if (!int.TryParse(id, out int userId))
         {
             return new Response()
             {
-                Message = "Invalid user id format",
+                Message = string.Format(Constants.NumberInput),
                 Status = 400
             };
         }
 
-        // User does not exist
-        if (!Library.users!.Exists(x => x.UserID.Equals(userId)))
+        if (!Library.users.Exists(u => u.UserID.Equals(userId)))
         {
             return new Response()
             {
-                Message = "User does not exist",
+                Message = string.Format(Constants.UserNotFound, userId),
                 Status = 400
             };
         }
@@ -359,22 +358,27 @@ class Program
         Console.Write(Constants.RequestTitle);
         var bookTitle = Console.ReadLine();
 
-
-        // Title can not be empty
         if (string.IsNullOrEmpty(bookTitle))
         {
-            return new Response() { Message = "Book title can not be empty", Status = 400 };
+            return new Response() 
+            { 
+                Message = string.Format(Constants.EmptyInput, "Book title"), 
+                Status = 400 
+            };
         }
 
-        // Book exists in Library.books
-        if (!Library.books!.Exists(x => x.Title == bookTitle))
+        if (!Library.books.Exists(b => b.Title == bookTitle))
         {
-            return new Response() { Message = "Book does not exist", Status = 400 };
+            return new Response() 
+            { 
+                Message = string.Format(Constants.BookNotFound, bookTitle), 
+                Status = 400 
+            };
         }
 
-        Lend? lastRecord = Library.lendings!.FindLast(x => x.BookTitle == bookTitle && x.UserId == userId);
+        Loan? lastRecord = Library.loans.FindLast(b => b.BookTitle == bookTitle && b.UserId == userId);
 
-        if (lastRecord != null && lastRecord!.ReturnDate == null)
+        if (lastRecord != null && lastRecord.ReturnDate == null)
         {
             return new Response()
             {
@@ -383,10 +387,9 @@ class Program
             };
         }
 
-
         return new Response
         {
-            Lend = new Lend() { BookTitle = bookTitle, UserId = userId },
+            Loan = new Loan() { BookTitle = bookTitle, UserId = userId },
             Book = new Book() { Title = bookTitle },
             User = new User() { UserID = userId },
             Status = 200
@@ -399,11 +402,10 @@ class Program
 
         if (res.Status == 200)
         {
-
-            Library.lendings!.Add(new Lend()
+            Library.loans.Add(new Loan()
             {
-                BookTitle = res.Lend!.BookTitle,
-                UserId = res.Lend.UserId,
+                BookTitle = res.Loan!.BookTitle,
+                UserId = res.Loan.UserId,
                 LendDate = DateTime.Now,
             });
 
@@ -412,7 +414,7 @@ class Program
         }
         else
         {
-            Console.WriteLine($"Error: {res.Message}");
+            Console.WriteLine(Constants.ErrorMessage, res.Message);
         }
     }
 
@@ -422,7 +424,7 @@ class Program
         Console.Write(Constants.RequestUserId);
         var input = Console.ReadLine();
 
-        if (!Int32.TryParse(input, out int id))
+        if (!int.TryParse(input, out int id))
         {
             Console.WriteLine(Constants.InvalidID);
             return new Response()
@@ -432,12 +434,12 @@ class Program
             };
         }
 
-        if (!Library.users.Exists(x => x.UserID.Equals(id)))
+        if (!Library.users.Exists(u => u.UserID.Equals(id)))
         {
             return new Response()
             {
                 Status = 400,
-                Message = "User does not exists"
+                Message = string.Format(Constants.UserNotFound, id)
             };
         }
 
@@ -450,17 +452,26 @@ class Program
             return new Response()
             {
                 Status = 400,
-                Message = "Title can not be empty"
+                Message = string.Format(Constants.EmptyInput, "Book title")
             };
         }
 
-        Lend? lendBook = Library.lendings!.FindLast(x => x.UserId == id && x.BookTitle == title)!;
-
-        if (lendBook != null && lendBook.ReturnDate != null)
+        if (!Library.books.Exists(b => b.Title!.Equals(title)))
         {
             return new Response()
             {
-                Message = "Does not exist boook lend",
+                Status = 400,
+                Message = string.Format(Constants.BookNotFound, title)
+            };
+        }
+
+        Loan? lendBook = Library.loans.FindLast(l => l.UserId == id && l.BookTitle == title);
+
+        if (lendBook == null)
+        {
+            return new Response()
+            {
+                Message = Constants.LoanNotFound,
                 Status = 400
             };
         }
@@ -479,11 +490,10 @@ class Program
 
         if (res.Status == 200)
         {
-            string? title = res.Book.Title;
-            int id = res.User.UserID;
+            string? title = res.Book!.Title;
+            int id = res.User!.UserID;
 
-            Lend? book = Library.lendings.FindLast(x => x.UserId == id && x.BookTitle.Equals(title) && x.ReturnDate == null);
-            Library.RegisterReturn(res.Book, res.User);
+            Loan? book = Library.loans.FindLast(l => l.UserId == id && l.BookTitle.Equals(title) && l.ReturnDate == null);
 
             if (book != null)
             {
@@ -494,7 +504,7 @@ class Program
         }
         else
         {
-            Console.WriteLine($"Error: {res.Message}");
+            Console.WriteLine(Constants.ErrorMessage, res.Message);
         }
     }
 }
