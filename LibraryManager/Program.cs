@@ -22,7 +22,7 @@ class Program
 
 
         Console.WriteLine(Constants.Title);
-        Console.WriteLine(Constants.Separator2);
+        Console.WriteLine(Constants.Separator);
 
 
         while (continueExecution)
@@ -36,7 +36,7 @@ class Program
                     AddBook();
                     break;
                 case "2":
-                    SearchBook();
+                    SearchBookByTitle();
                     break;
                 case "3":
                     PrintBooks(string.Empty);
@@ -98,7 +98,7 @@ class Program
         }
         else
         {
-            Console.WriteLine($"Error: {res.Message}");
+            Console.WriteLine(Constants.ErrorMessage, res.Message);
         }
     }
 
@@ -111,7 +111,7 @@ class Program
         {
             return new Response()
             {
-                Message = "Title can not be empty",
+                Message = Constants.EmptyInput,
                 Status = 400
             };
         }
@@ -123,7 +123,7 @@ class Program
         {
             return new Response()
             {
-                Message = "Author can not be empty",
+                Message = Constants.EmptyInput,
                 Status = 400
             };
         };
@@ -135,98 +135,104 @@ class Program
         {
             return new Response()
             {
-                Message = "ISBN cannot be empty",
+                Message = Constants.EmptyInput,
                 Status = 400
             };
         }
 
-        if (!Int32.TryParse(isbn, out int number))
+        if (!Int32.TryParse(isbn, out int isbnNumber))
         {
             return new Response()
             {
-                Message = "ISBN must be a number",
+                Message = Constants.NumberInput,
                 Status = 400
             };
         }
 
-
-        if (Library.books!.Any(x => x.ISBN == number))
+        if (Library.books!.Any(book => book.ISBN == isbnNumber))
         {
             return new Response()
             {
-                Message = "ISBN already exists",
+                Message = string.Format(Constants.AlredyExists, "ISBN number"),
                 Status = 400
             };
         }
-
 
         Console.Write(Constants.RequestPublicationYear);
-        string? input = Console.ReadLine();
+        var input = Console.ReadLine();
 
-        if (!Int32.TryParse(input, out int n))
+        if (!Int32.TryParse(input, out int publishedYear))
         {
+            
             return new Response()
             {
-                Message = "Publication year must be a number",
+                Message = Constants.NumberInput,
                 Status = 400
             };
         }
 
-        if (Int32.Parse(input!) < 0 | Int32.Parse(input!) > DateTime.Now.Year)
+        if (publishedYear < 0 || publishedYear > DateTime.Now.Year)
         {
             return new Response()
             {
-                Message = "Year out of range",
+                Message = Constants.InvalidYear,
                 Status = 400
             };
         }
-
-        int year = Int32.Parse(input);
 
         return new Response()
         {
-            Book = new Book() { Title = title, Author = author, ISBN = number, Published = year },
+            Book = new Book() { Title = title, Author = author, ISBN = isbnNumber, Published = publishedYear },
             Status = 200,
         };
     }
 
 
     // 2- Search book by title
-    private static void SearchBook()
+    private static void SearchBookByTitle()
     {
         Console.Write(Constants.RequestTitle);
-        var filter = Console.ReadLine();
+        var title = Console.ReadLine();
 
-        if (!String.IsNullOrEmpty(filter))
-        {
-            PrintBooks(filter);
-        }
+        PrintBooks(title);
     }
 
     public static void Print(Book book)
     {
-        Console.WriteLine();
-        Console.WriteLine("\tTitle: {0}", book.Title);
+        Console.WriteLine("\n\tTitle: {0}", book.Title);
         Console.WriteLine("\tAuthor: {0}", book.Author);
         Console.WriteLine("\tISBN: {0}", book.ISBN);
-        Console.WriteLine("\tPublished: {0}", book.Published);
-        Console.WriteLine();
+        Console.WriteLine("\tPublished: {0}\n", book.Published);
     }
 
     // 3 - List all books
-    static void PrintBooks(string filter)
+    static void PrintBooks(string? filter)
     {
+        if (Library.books.Count < 1)
+        {
+            Console.WriteLine(Constants.NoBooks);
+            return;
+        }
+
         if (string.IsNullOrEmpty(filter))
         {
-            foreach (Book book in Library.books!)
+            foreach (Book book in Library.books)
             {
                 Print(book);
             }
         }
         else
         {
-            Book book = Library.SearchByTitle(filter);
-            Print(book);
+            Book? result = Library.books.FirstOrDefault(book => book.Title!.Equals(filter));
+
+            if (result != null)
+            {
+                Print(result);
+            }
+            else
+            {
+                Console.WriteLine(Constants.BookNotFound, filter);
+            }
         }
     }
 

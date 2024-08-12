@@ -9,45 +9,16 @@ public class Library
     public List<Lend> lendings = new List<Lend>();
 
 
-    // Book implementations
     public void AddBook(Book book)
     {
         books.Add(book);
     }
 
-    public void AddBook(string t, string author, int ISBN, int year)
-    {
-        Book book = new Book()
-        {
-            Title = t,
-            Author = author,
-            ISBN = ISBN,
-            Published = year,
-        };
-
-        books.Add(book);
-    }
-
-    public Book SearchByTitle(string title)
-    {
-        Book? result = new Book();
-
-        result = books.FirstOrDefault(book => book.Title == title);
-
-        return result!;
-    }
-
-    public List<Book> Books()
-    {
-        return books;
-    }
-
-
     // User implementations
     public void AddUser(string name)
     {
         int id = users.Count();
-        
+
         users!.Add(new User()
         {
             UserName = name,
@@ -57,7 +28,7 @@ public class Library
 
     public User SearchUserByID(int id)
     {
-        return users.FirstOrDefault(user => user.UserID == id)!; 
+        return users.FirstOrDefault(user => user.UserID == id)!;
     }
 
     public void RegisterLend(Book book, User user)
