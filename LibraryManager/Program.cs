@@ -2,7 +2,7 @@
 
 class Program
 {
-    private static Library? library;
+    private static Library library;
     public static Library Library
     {
         get
@@ -14,7 +14,6 @@ class Program
             return library;
         }
     }
-
 
     static void Main()
     {
@@ -48,7 +47,7 @@ class Program
                     UserById();
                     break;
                 case "6":
-                    Lend();
+                    Loan();
                     break;
                 case "7":
                     Return();
@@ -105,6 +104,7 @@ class Program
     static Response InitializeBook()
     {
         Console.Write(Constants.RequestTitle);
+
         var title = Console.ReadLine();
 
         if (string.IsNullOrEmpty(title))
@@ -117,6 +117,7 @@ class Program
         }
 
         Console.Write(Constants.RequestAuthor);
+
         var author = Console.ReadLine();
 
         if (string.IsNullOrEmpty(author))
@@ -129,6 +130,7 @@ class Program
         };
 
         Console.Write(Constants.RequestISBN);
+
         var isbn = Console.ReadLine();
 
         if (string.IsNullOrEmpty(isbn))
@@ -159,6 +161,7 @@ class Program
         }
 
         Console.Write(Constants.RequestPublicationYear);
+
         var input = Console.ReadLine();
 
         if (!Int32.TryParse(input, out int publishedYear))
@@ -192,6 +195,7 @@ class Program
     private static void SearchBookByTitle()
     {
         Console.Write(Constants.RequestTitle);
+
         var title = Console.ReadLine();
 
         PrintBooks(title);
@@ -240,6 +244,7 @@ class Program
     static Response UserValidation()
     {
         Console.Write(Constants.RequestUserName);
+
         var name = Console.ReadLine();
 
         if (string.IsNullOrEmpty(name))
@@ -285,6 +290,7 @@ class Program
     static Response ValidateID()
     {
         Console.Write(Constants.RequestUserId);
+
         var input = Console.ReadLine();
 
         if (!int.TryParse(input, out int id))
@@ -331,11 +337,11 @@ class Program
 
 
     // 6 - Borrow book
-    private static Response InitializeLend()
+    private static Response InitializeLoan()
     {
         Console.Write(Constants.RequestUserId);
-        var id = Console.ReadLine();
 
+        var id = Console.ReadLine();
 
         if (!int.TryParse(id, out int userId))
         {
@@ -356,29 +362,29 @@ class Program
         }
 
         Console.Write(Constants.RequestTitle);
+
         var bookTitle = Console.ReadLine();
 
         if (string.IsNullOrEmpty(bookTitle))
         {
-            return new Response() 
-            { 
-                Message = string.Format(Constants.EmptyInput, "Book title"), 
-                Status = 400 
+            return new Response()
+            {
+                Message = string.Format(Constants.EmptyInput, "Book title"),
+                Status = 400
             };
         }
 
         if (!Library.books.Exists(b => b.Title == bookTitle))
         {
-            return new Response() 
-            { 
-                Message = string.Format(Constants.BookNotFound, bookTitle), 
-                Status = 400 
+            return new Response()
+            {
+                Message = string.Format(Constants.BookNotFound, bookTitle),
+                Status = 400
             };
         }
 
-        Loan? lastRecord = Library.loans.FindLast(b => b.BookTitle == bookTitle && b.UserId == userId);
-
-        if (lastRecord != null && lastRecord.ReturnDate == null)
+        // Busco si hay prestamos activo de ese libro
+        if(Library.loans.Any(loan => loan.BookTitle == bookTitle && loan.ReturnDate == null))
         {
             return new Response()
             {
@@ -396,9 +402,9 @@ class Program
         };
     }
 
-    private static void Lend()
+    private static void Loan()
     {
-        Response res = InitializeLend();
+        Response res = InitializeLoan();
 
         if (res.Status == 200)
         {
@@ -422,6 +428,7 @@ class Program
     static Response ValidateReturnInput()
     {
         Console.Write(Constants.RequestUserId);
+
         var input = Console.ReadLine();
 
         if (!int.TryParse(input, out int id))
@@ -443,8 +450,8 @@ class Program
             };
         }
 
-
         Console.Write(Constants.RequestTitle);
+
         var title = Console.ReadLine();
 
         if (string.IsNullOrEmpty(title))
@@ -465,15 +472,16 @@ class Program
             };
         }
 
-        Loan? lendBook = Library.loans.FindLast(l => l.UserId == id && l.BookTitle == title);
+        bool loanExists = Library.loans.Any(loan => loan.BookTitle == title && loan.UserId == id && loan.ReturnDate == null);
 
-        if (lendBook == null)
+        if(!loanExists)
         {
             return new Response()
             {
-                Message = Constants.LoanNotFound,
+                Message = "Loan does not exist",
                 Status = 400
             };
+           
         }
 
         return new Response()
@@ -491,6 +499,7 @@ class Program
         if (res.Status == 200)
         {
             string? title = res.Book!.Title;
+
             int id = res.User!.UserID;
 
             Loan? book = Library.loans.FindLast(l => l.UserId == id && l.BookTitle.Equals(title) && l.ReturnDate == null);
