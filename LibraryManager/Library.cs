@@ -37,7 +37,7 @@ public class Library
 
     public void RegisterReturn(Book book, User user)
     {
-        User? userInfo = users.FirstOrDefault(u => u.UserID == user.UserID);
+        var userInfo = users.FirstOrDefault(u => u.UserID == user.UserID);
 
         user.Return(book);
     }

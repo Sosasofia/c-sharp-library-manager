@@ -1,4 +1,5 @@
 ﻿using LibraryManager;
+using System.Globalization;
 
 class Program
 {
@@ -287,55 +288,74 @@ class Program
     }
 
     // 5 - Find user by id
-    static Response ValidateID()
+    public static void UserById()
     {
         Console.Write(Constants.RequestUserId);
 
         var input = Console.ReadLine();
 
-        if (!int.TryParse(input, out int id))
+        var ValidationID = ValidateID(input);
+
+        if (ValidationID.Status == 400)
+        {
+            Console.WriteLine($"\tError: {ValidationID.Message}");
+
+            return;
+        }
+
+        int id = int.Parse(input);
+
+        var ValidationUser = UserValidation(id);
+
+        if (ValidationUser.Status == 200)
+        {
+            var result = Library.users.FirstOrDefault(user => user.UserID.Equals(id));
+
+            Console.WriteLine("\n\tUser found!");
+            Console.WriteLine("\tUsername: {0}", result!.UserID);
+        }
+        else
+        {
+            Console.WriteLine(ValidationUser.Message);
+        }
+    }
+
+    static Response ValidateID(string id)
+    {
+        if(!int.TryParse(id, out int result))
         {
             return new Response()
             {
-                Message = string.Format(Constants.NumberInput, "ID"),
-                Status = 400
+                Status = 400,
+
+                Message = string.Format(Constants.NumberInput, result)
             };
         }
 
-        if (!Library.users.Exists(user => user.UserID == id))
+        return new Response()
+        {
+            Status = 200
+        };
+    }
+
+    static Response UserValidation(int id)
+    {
+        if (!library.users.Exists(u => u.UserID == id))
         {
             return new Response()
             {
                 Message = string.Format(Constants.UserNotFound, id),
-                Status = 400,
+                Status = 400
             };
         }
 
-
         return new Response()
         {
-            User = new User() { UserID = id },
-            Status = 200,
+            Status = 200
         };
     }
 
-    public static void UserById()
-    {
-        Response res = ValidateID();
-
-        if (res.Status == 200)
-        {
-            User? result = Library.users.FirstOrDefault(user => user.UserID.Equals(res.User!.UserID));
-            Console.WriteLine("\n\tUser found!");
-            Console.WriteLine("\tUsername: {0}", result!.UserName);
-        }
-        else
-        {
-            Console.WriteLine(Constants.ErrorMessage, res.Message);
-        }
-    }
-
-
+   
     // 6 - Borrow book
     private static Response InitializeLoan()
     {
@@ -384,7 +404,7 @@ class Program
         }
 
         // Busco si hay prestamos activo de ese libro
-        if(Library.loans.Any(loan => loan.BookTitle == bookTitle && loan.ReturnDate == null))
+        if (Library.loans.Any(loan => loan.BookTitle == bookTitle && loan.ReturnDate == null))
         {
             return new Response()
             {
@@ -408,12 +428,7 @@ class Program
 
         if (res.Status == 200)
         {
-            Library.loans.Add(new Loan()
-            {
-                BookTitle = res.Loan!.BookTitle,
-                UserId = res.Loan.UserId,
-                LendDate = DateTime.Now,
-            });
+            Library.loans.Add(res.Loan);
 
             Library.RegisterLend(res.Book!, res.User!);
             Console.WriteLine("Correct loan");
@@ -474,14 +489,14 @@ class Program
 
         bool loanExists = Library.loans.Any(loan => loan.BookTitle == title && loan.UserId == id && loan.ReturnDate == null);
 
-        if(!loanExists)
+        if (!loanExists)
         {
             return new Response()
             {
                 Message = "Loan does not exist",
                 Status = 400
             };
-           
+
         }
 
         return new Response()
