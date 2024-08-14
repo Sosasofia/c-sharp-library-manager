@@ -14,40 +14,23 @@ public class Library
         books.Add(book);
     }
 
-    public void AddUser(User user)
+    public void AddUser (User user)
     {
         int id = users.Count;
 
-        users!.Add(new User()
+        users.Add(new User()
         {
             UserName = user.UserName,
             UserID = id + 1,
         });
     }
 
-    public void RegisterLend(Book book, User user)
-    {
-        User? foundUser = users.FirstOrDefault(u => u.UserID == user.UserID);
-
-        if (foundUser != null)
-        {
-            foundUser.Borrow(book);
-        }
-    }
-
-    public void RegisterReturn(Book book, User user)
-    {
-        var userInfo = users.FirstOrDefault(u => u.UserID == user.UserID);
-
-        user.Return(book);
-    }
-
-    public void AddLoan(Loan loan)
+    public void AddLoan (Loan loan)
     {
         loans.Add(loan);
     }
 
-    public bool Exists(string name)
+    public bool Exists (string name)
     {
         return users.Any(u => u.UserName == name);
     }
@@ -55,6 +38,11 @@ public class Library
     public bool UserIdExists(int id)
     {
         return users.Exists(u => u.UserID == id);
+    }
+
+    public bool BookISBNExists(int isbn)
+    {
+        return books.Exists(b => b.ISBN == isbn);
     }
 
     public bool BookExists(string title)
@@ -74,18 +62,10 @@ public class Library
         return user;
     }
 
-    // Busco libro por titulo
     public Book? FindBook(string filter)
     {
         var res = books.FirstOrDefault(book => book.Title!.Equals(filter));
 
         return res;
-    }
-
-    // mejorar
-    public void LoanHistory()
-    {
-        Console.WriteLine("Book title\t\t\tLend Date\t\t\tReturn Date");
-        loans!.ForEach(lend => Console.WriteLine($"{lend.BookTitle}\t\t{lend.LendDate.ToString()}\t\t{lend.ReturnDate.ToString()}"));
     }
 };

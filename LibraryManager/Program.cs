@@ -1,8 +1,8 @@
 ﻿using LibraryManager;
 
-class Program
+static class Program
 {
-    private static Library library; 
+    private static Library library;
     public static Library Library
     {
         get
@@ -22,6 +22,7 @@ class Program
 
         Console.WriteLine(Constants.Title);
         Console.WriteLine(Constants.Separator);
+        Console.WriteLine();
 
 
         while (continueExecution)
@@ -53,14 +54,13 @@ class Program
                     Return();
                     break;
                 case "8":
-                    Console.WriteLine("Loan history");
-                    Library.LoanHistory();
+                    LoanHistory();
                     break;
                 case "9":
                     continueExecution = false;
                     break;
                 default:
-                    Console.WriteLine(Constants.InvalidOption);
+                    Console.WriteLine(Constants.Invalid, "option");
                     break;
             }
 
@@ -76,10 +76,16 @@ class Program
         if (res.Status == 200)
         {
             Library.AddBook(res.Book!);
+
+            string successMessage = string.Format(Constants.SuccessMessage, "book");
+
+            DisplayMessage(successMessage);
         }
         else
         {
-            Console.WriteLine(Constants.ErrorMessage, res.Message);
+            string errorMessage = string.Format(Constants.ErrorMessage, res.Message);
+
+            DisplayMessage(errorMessage);
         }
     }
 
@@ -95,6 +101,15 @@ class Program
             {
                 Message = Constants.EmptyInput,
                 Status = 400
+            };
+        }
+
+        if (Library.Exists(title))
+        {
+            return new Response()
+            {
+                Status = 400,
+                Message = string.Format(Constants.AlredyExists, "Book"),
             };
         }
 
@@ -133,7 +148,7 @@ class Program
             };
         }
 
-        if (Library.books!.Any(book => book.ISBN == isbnNumber))
+        if (Library.BookISBNExists(isbnNumber))
         {
             return new Response()
             {
@@ -160,7 +175,7 @@ class Program
         {
             return new Response()
             {
-                Message = Constants.InvalidYear,
+                Message = string.Format(Constants.Invalid, "year"),
                 Status = 400
             };
         }
@@ -187,7 +202,9 @@ class Program
     {
         if (Library.books.Count < 1)
         {
-            Console.WriteLine(Constants.NoBooks);
+            string errorMessage = string.Format(Constants.NotFound, "Books");
+
+            DisplayMessage(errorMessage);
             return;
         }
 
@@ -197,6 +214,9 @@ class Program
             {
                 Print(book);
             }
+
+            Console.ReadKey();
+            Console.Clear();
         }
         else
         {
@@ -205,10 +225,13 @@ class Program
             if (result != null)
             {
                 Print(result);
+
+                Console.ReadKey();
+                Console.Clear();
             }
             else
             {
-                Console.WriteLine(Constants.BookNotFound, filter);
+                DisplayMessage(Constants.BookNotFound);
             }
         }
     }
@@ -252,11 +275,16 @@ class Program
         if (res.Status == 200)
         {
             Library.AddUser(res.User!);
-            Console.WriteLine(Constants.UserCreated);
+
+            string successMessage = string.Format(Constants.SuccessMessage, "user");
+
+            DisplayMessage(successMessage);
         }
         else
         {
-            Console.WriteLine(Constants.ErrorMessage, res.Message);
+            string errorMessage = string.Format(Constants.ErrorMessage, res.Message);
+
+            DisplayMessage(errorMessage);
         }
     }
 
@@ -267,9 +295,9 @@ class Program
 
         var input = Console.ReadLine();
 
-        if(!int.TryParse(input, out int id))
+        if (!int.TryParse(input, out int id))
         {
-            Console.WriteLine($"\tError: input must be number");
+            DisplayMessage(Constants.NumberInput);
 
             return;
         }
@@ -280,12 +308,15 @@ class Program
         {
             var user = Library.SearchByID(id);
 
-            Console.WriteLine("\n\tUser found!");
-            Console.WriteLine("\tUsername: {0}", user!.UserID);
+            string message = string.Format($"\tUser found!\r\n\tUsername: {user!.UserName}");
+
+            DisplayMessage(message);
         }
         else
         {
-            Console.WriteLine(ValidationResponse.Message);
+            string errorMessage = string.Format(Constants.ErrorMessage, ValidationResponse.Message);
+
+            DisplayMessage(errorMessage);
         }
     }
 
@@ -347,7 +378,7 @@ class Program
             return new Response()
             {
                 Status = 400,
-                Message = "Not available"
+                Message = Constants.NotAvailable,
             };
         }
 
@@ -366,7 +397,7 @@ class Program
 
         if (!int.TryParse(id, out int userId))
         {
-            Console.WriteLine(string.Format(Constants.NumberInput));
+            DisplayMessage(string.Format(Constants.NumberInput));
 
             return;
         }
@@ -377,11 +408,15 @@ class Program
         {
             Library.AddLoan(res.Loan!);
 
-            Console.WriteLine("Correct loan");
+            string successMessage = string.Format(Constants.SuccessMessage, "loan");
+
+            DisplayMessage(successMessage);
         }
         else
         {
-            Console.WriteLine(Constants.ErrorMessage, res.Message);
+            string errorMessage = string.Format(Constants.ErrorMessage, res.Message);
+
+            DisplayMessage(errorMessage);
         }
     }
 
@@ -395,7 +430,7 @@ class Program
 
         if (!int.TryParse(input, out int id))
         {
-            Console.WriteLine(Constants.NumberInput); 
+            DisplayMessage(string.Format(Constants.Invalid, "ID"));
 
             return;
         }
@@ -417,7 +452,7 @@ class Program
 
         if (UserResponse.Status == 400 || BookResponse.Status == 400)
         {
-            Console.WriteLine("Error with the id or the book title");
+            DisplayMessage(string.Format(Constants.Invalid, "ID or book title"));
 
             return;
         }
@@ -432,12 +467,14 @@ class Program
             {
                 loan.ReturnDate = DateTime.Now;
 
-                Console.WriteLine("Correct return");
+                DisplayMessage(Constants.CorrectReturn);
             };
-        } 
+        }
         else
         {
-            Console.WriteLine("\tError");
+            string errorMessage = string.Format(Constants.ErrorMessage, LoanValidation.Message);
+
+            DisplayMessage(errorMessage);
         }
     }
 
@@ -450,7 +487,7 @@ class Program
         {
             return new Response()
             {
-                Message = "Loan does not exist",
+                Message = Constants.LoanNotFound,
                 Status = 400
             };
         }
@@ -464,7 +501,7 @@ class Program
     // Valida libro
     static Response BookValidation(string title)
     {
-        
+
         if (!Library.books.Exists(b => b.Title!.Equals(title)))
         {
             return new Response()
@@ -484,23 +521,44 @@ class Program
     private static void PrintMenu()
     {
         Console.WriteLine(Constants.MenuMessage);
-        Console.WriteLine(Constants.AddBook);
-        Console.WriteLine(Constants.SearchBookByTitle);
-        Console.WriteLine(Constants.ListAllBooks);
-        Console.WriteLine(Constants.AddUser);
-        Console.WriteLine(Constants.SearchUserById);
-        Console.WriteLine(Constants.LendBook);
-        Console.WriteLine(Constants.ReturnBook);
-        Console.WriteLine(Constants.LoanHistory);
-        Console.WriteLine(Constants.FinishExecution);
+        Console.WriteLine(Constants.MenuOptions);
         Console.WriteLine();
     }
 
     public static void Print(Book book)
     {
-        Console.WriteLine("\n\tTitle: {0}", book.Title);
-        Console.WriteLine("\tAuthor: {0}", book.Author);
-        Console.WriteLine("\tISBN: {0}", book.ISBN);
-        Console.WriteLine("\tPublished: {0}\n", book.Published);
+        Console.WriteLine();
+        Console.WriteLine(Constants.Separator);
+        Console.WriteLine(Constants.BookInfo, book.Title, book.Author, book.ISBN, book.Published);
+        Console.WriteLine(Constants.Separator);
+    }
+
+    static void DisplayMessage(string message)
+    {
+        Console.WriteLine();
+        Console.WriteLine(Constants.Separator);
+        Console.WriteLine(message);
+        Console.WriteLine(Constants.Separator);
+        Console.ReadKey();
+        Console.Clear();
+    }
+
+    public static void LoanHistory()
+    {
+        Console.WriteLine(Constants.Separator);
+        Console.WriteLine("\tLoan history");
+        Console.WriteLine("\t----------------------------------------------------------------------------------------");
+        Console.WriteLine("\tBook title\tUser\tLend Date\t\t\tReturn Date");
+        Console.WriteLine("\t----------------------------------------------------------------------------------------");
+
+
+        foreach (Loan loan in Library.loans)
+        {
+            Console.WriteLine($"\t{loan.BookTitle}\t\t{loan.UserId}\t{loan.LendDate.ToString()}\t{loan.ReturnDate.ToString()}");
+        }
+
+
+        Console.ReadKey();
+        Console.Clear();
     }
 }
