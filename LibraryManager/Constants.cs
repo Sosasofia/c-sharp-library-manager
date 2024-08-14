@@ -39,4 +39,5 @@ public static class Constants
     public const string RequestUserName = "\tEnter username: ";
 
     public const string UserCreated = "\tSuccesfull user creation!";
+    public const string BookCreated = "\tSuccesfull book creation!";
 }

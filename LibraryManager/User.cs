@@ -4,12 +4,13 @@ public class User
 {
     public int UserID { get; set; }
     public string? UserName { get; set; }
+
     private static List<Book>? borrowed = new List<Book>();
 
 
     public void Borrow(Book book)
     {
-        Book? borrowedBook = borrowed!.FirstOrDefault(b => b.Title == book.Title);
+        var borrowedBook = borrowed!.FirstOrDefault(b => b.Title == book.Title);
 
         if (borrowedBook != null && !borrowedBook.Available)
         {
@@ -23,7 +24,7 @@ public class User
 
     public void Return(Book book)
     {
-        Book? borrowedBook = borrowed!.FirstOrDefault(b => b.Title!.Equals(book.Title));
+        var borrowedBook = borrowed!.FirstOrDefault(b => b.Title!.Equals(book.Title));
 
         if (borrowedBook != null)
         {

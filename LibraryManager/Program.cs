@@ -1,9 +1,8 @@
 ﻿using LibraryManager;
-using System.Globalization;
 
 class Program
 {
-    private static Library library;
+    private static Library library; 
     public static Library Library
     {
         get
@@ -60,9 +59,6 @@ class Program
                 case "9":
                     continueExecution = false;
                     break;
-                case "a":
-
-                    break;
                 default:
                     Console.WriteLine(Constants.InvalidOption);
                     break;
@@ -72,25 +68,10 @@ class Program
         }
     }
 
-    private static void PrintMenu()
-    {
-        Console.WriteLine(Constants.MenuMessage);
-        Console.WriteLine(Constants.AddBook);
-        Console.WriteLine(Constants.SearchBookByTitle);
-        Console.WriteLine(Constants.ListAllBooks);
-        Console.WriteLine(Constants.AddUser);
-        Console.WriteLine(Constants.SearchUserById);
-        Console.WriteLine(Constants.LendBook);
-        Console.WriteLine(Constants.ReturnBook);
-        Console.WriteLine(Constants.LoanHistory);
-        Console.WriteLine(Constants.FinishExecution);
-        Console.WriteLine();
-    }
-
     // 1 - Add book
-    private static void AddBook()
+    static void AddBook()
     {
-        Response res = InitializeBook();
+        var res = InitializeBook();
 
         if (res.Status == 200)
         {
@@ -143,7 +124,7 @@ class Program
             };
         }
 
-        if (!Int32.TryParse(isbn, out int isbnNumber))
+        if (!int.TryParse(isbn, out int isbnNumber))
         {
             return new Response()
             {
@@ -165,7 +146,7 @@ class Program
 
         var input = Console.ReadLine();
 
-        if (!Int32.TryParse(input, out int publishedYear))
+        if (!int.TryParse(input, out int publishedYear))
         {
 
             return new Response()
@@ -191,7 +172,6 @@ class Program
         };
     }
 
-
     // 2- Search book by title
     private static void SearchBookByTitle()
     {
@@ -200,14 +180,6 @@ class Program
         var title = Console.ReadLine();
 
         PrintBooks(title);
-    }
-
-    public static void Print(Book book)
-    {
-        Console.WriteLine("\n\tTitle: {0}", book.Title);
-        Console.WriteLine("\tAuthor: {0}", book.Author);
-        Console.WriteLine("\tISBN: {0}", book.ISBN);
-        Console.WriteLine("\tPublished: {0}\n", book.Published);
     }
 
     // 3 - List all books
@@ -228,7 +200,7 @@ class Program
         }
         else
         {
-            Book? result = Library.books.FirstOrDefault(book => book.Title!.Equals(filter));
+            var result = Library.FindBook(filter);
 
             if (result != null)
             {
@@ -257,12 +229,12 @@ class Program
             };
         }
 
-        if (Library.users!.Exists(user => user.UserName == name))
+        if (Library.Exists(name))
         {
             return new Response()
             {
+                Message = string.Format(Constants.AlredyExists, "Username"),
                 Status = 400,
-                Message = string.Format(Constants.AlredyExists, "Username")
             };
         }
 
@@ -272,9 +244,10 @@ class Program
             Status = 200,
         };
     }
+
     public static void CreateUser()
     {
-        Response res = UserValidation();
+        var res = UserValidation();
 
         if (res.Status == 200)
         {
@@ -294,53 +267,31 @@ class Program
 
         var input = Console.ReadLine();
 
-        var ValidationID = ValidateID(input);
-
-        if (ValidationID.Status == 400)
+        if(!int.TryParse(input, out int id))
         {
-            Console.WriteLine($"\tError: {ValidationID.Message}");
+            Console.WriteLine($"\tError: input must be number");
 
             return;
         }
 
-        int id = int.Parse(input);
+        var ValidationResponse = UserValidation(id);
 
-        var ValidationUser = UserValidation(id);
-
-        if (ValidationUser.Status == 200)
+        if (ValidationResponse.Status == 200)
         {
-            var result = Library.users.FirstOrDefault(user => user.UserID.Equals(id));
+            var user = Library.SearchByID(id);
 
             Console.WriteLine("\n\tUser found!");
-            Console.WriteLine("\tUsername: {0}", result!.UserID);
+            Console.WriteLine("\tUsername: {0}", user!.UserID);
         }
         else
         {
-            Console.WriteLine(ValidationUser.Message);
+            Console.WriteLine(ValidationResponse.Message);
         }
-    }
-
-    static Response ValidateID(string id)
-    {
-        if(!int.TryParse(id, out int result))
-        {
-            return new Response()
-            {
-                Status = 400,
-
-                Message = string.Format(Constants.NumberInput, result)
-            };
-        }
-
-        return new Response()
-        {
-            Status = 200
-        };
     }
 
     static Response UserValidation(int id)
     {
-        if (!library.users.Exists(u => u.UserID == id))
+        if (!library.UserIdExists(id))
         {
             return new Response()
             {
@@ -355,24 +306,11 @@ class Program
         };
     }
 
-   
     // 6 - Borrow book
-    private static Response InitializeLoan()
+    private static Response InitializeLoan(int userId)
     {
-        Console.Write(Constants.RequestUserId);
-
-        var id = Console.ReadLine();
-
-        if (!int.TryParse(id, out int userId))
-        {
-            return new Response()
-            {
-                Message = string.Format(Constants.NumberInput),
-                Status = 400
-            };
-        }
-
-        if (!Library.users.Exists(u => u.UserID.Equals(userId)))
+        // Valido si existe usuario
+        if (!Library.UserIdExists(userId))
         {
             return new Response()
             {
@@ -394,7 +332,7 @@ class Program
             };
         }
 
-        if (!Library.books.Exists(b => b.Title == bookTitle))
+        if (!Library.BookExists(bookTitle))
         {
             return new Response()
             {
@@ -404,7 +342,7 @@ class Program
         }
 
         // Busco si hay prestamos activo de ese libro
-        if (Library.loans.Any(loan => loan.BookTitle == bookTitle && loan.ReturnDate == null))
+        if (Library.ActiveLoan(bookTitle))
         {
             return new Response()
             {
@@ -415,22 +353,30 @@ class Program
 
         return new Response
         {
-            Loan = new Loan() { BookTitle = bookTitle, UserId = userId },
-            Book = new Book() { Title = bookTitle },
-            User = new User() { UserID = userId },
+            Loan = new Loan() { BookTitle = bookTitle, UserId = userId, LendDate = DateTime.Now },
             Status = 200
         };
     }
 
     private static void Loan()
     {
-        Response res = InitializeLoan();
+        Console.Write(Constants.RequestUserId);
+
+        var id = Console.ReadLine();
+
+        if (!int.TryParse(id, out int userId))
+        {
+            Console.WriteLine(string.Format(Constants.NumberInput));
+
+            return;
+        }
+
+        var res = InitializeLoan(userId);
 
         if (res.Status == 200)
         {
-            Library.loans.Add(res.Loan);
+            Library.AddLoan(res.Loan!);
 
-            Library.RegisterLend(res.Book!, res.User!);
             Console.WriteLine("Correct loan");
         }
         else
@@ -440,53 +386,64 @@ class Program
     }
 
     // 7 - Return book
-    static Response ValidateReturnInput()
+    static void Return()
     {
         Console.Write(Constants.RequestUserId);
 
         var input = Console.ReadLine();
 
+
         if (!int.TryParse(input, out int id))
         {
-            Console.WriteLine(Constants.InvalidID);
-            return new Response()
-            {
-                Status = 400,
-                Message = Constants.InvalidID
-            };
+            Console.WriteLine(Constants.NumberInput); 
+
+            return;
         }
 
-        if (!Library.users.Exists(u => u.UserID.Equals(id)))
-        {
-            return new Response()
-            {
-                Status = 400,
-                Message = string.Format(Constants.UserNotFound, id)
-            };
-        }
+        var UserResponse = UserValidation(id);
 
-        Console.Write(Constants.RequestTitle);
+        Console.WriteLine(Constants.RequestTitle);
 
         var title = Console.ReadLine();
 
         if (string.IsNullOrEmpty(title))
         {
-            return new Response()
-            {
-                Status = 400,
-                Message = string.Format(Constants.EmptyInput, "Book title")
-            };
+            Console.WriteLine(string.Format(Constants.EmptyInput, "Book title"));
+
+            return;
         }
 
-        if (!Library.books.Exists(b => b.Title!.Equals(title)))
+        var BookResponse = BookValidation(title);
+
+        if (UserResponse.Status == 400 || BookResponse.Status == 400)
         {
-            return new Response()
-            {
-                Status = 400,
-                Message = string.Format(Constants.BookNotFound, title)
-            };
+            Console.WriteLine("Error with the id or the book title");
+
+            return;
         }
 
+        var LoanValidation = ReturnValidation(title, id);
+
+        if (LoanValidation.Status == 200)
+        {
+            var loan = Library.loans.FindLast(l => l.UserId == id && l.BookTitle.Equals(title) && l.ReturnDate == null);
+
+            if (loan != null)
+            {
+                loan.ReturnDate = DateTime.Now;
+
+                Console.WriteLine("Correct return");
+            };
+        } 
+        else
+        {
+            Console.WriteLine("\tError");
+        }
+    }
+
+    // Valida si existe prestamo registrado
+    static Response ReturnValidation(string title, int id)
+    {
         bool loanExists = Library.loans.Any(loan => loan.BookTitle == title && loan.UserId == id && loan.ReturnDate == null);
 
         if (!loanExists)
@@ -496,39 +453,54 @@ class Program
                 Message = "Loan does not exist",
                 Status = 400
             };
-
         }
 
         return new Response()
         {
-            Book = new Book { Title = title },
-            User = new User { UserID = id },
             Status = 200,
         };
     }
 
-    private static void Return()
+    // Valida libro
+    static Response BookValidation(string title)
     {
-        Response res = ValidateReturnInput();
-
-        if (res.Status == 200)
+        
+        if (!Library.books.Exists(b => b.Title!.Equals(title)))
         {
-            string? title = res.Book!.Title;
-
-            int id = res.User!.UserID;
-
-            Loan? book = Library.loans.FindLast(l => l.UserId == id && l.BookTitle.Equals(title) && l.ReturnDate == null);
-
-            if (book != null)
+            return new Response()
             {
-                book.ReturnDate = DateTime.Now;
-                Library.RegisterReturn(res.Book, res.User);
-                Console.WriteLine("Correct return");
+                Status = 400,
+                Message = string.Format(Constants.BookNotFound, title)
             };
         }
-        else
+
+        return new Response()
         {
-            Console.WriteLine(Constants.ErrorMessage, res.Message);
-        }
+            Status = 200
+        };
+    }
+
+    // Print methods
+    private static void PrintMenu()
+    {
+        Console.WriteLine(Constants.MenuMessage);
+        Console.WriteLine(Constants.AddBook);
+        Console.WriteLine(Constants.SearchBookByTitle);
+        Console.WriteLine(Constants.ListAllBooks);
+        Console.WriteLine(Constants.AddUser);
+        Console.WriteLine(Constants.SearchUserById);
+        Console.WriteLine(Constants.LendBook);
+        Console.WriteLine(Constants.ReturnBook);
+        Console.WriteLine(Constants.LoanHistory);
+        Console.WriteLine(Constants.FinishExecution);
+        Console.WriteLine();
+    }
+
+    public static void Print(Book book)
+    {
+        Console.WriteLine("\n\tTitle: {0}", book.Title);
+        Console.WriteLine("\tAuthor: {0}", book.Author);
+        Console.WriteLine("\tISBN: {0}", book.ISBN);
+        Console.WriteLine("\tPublished: {0}\n", book.Published);
     }
 }
