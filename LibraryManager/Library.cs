@@ -14,37 +14,58 @@ public class Library
         books.Add(book);
     }
 
-    public void AddUser(User user)
+    public void AddUser (User user)
     {
-        int id = users.Count();
+        int id = users.Count;
 
-        users!.Add(new User()
+        users.Add(new User()
         {
             UserName = user.UserName,
             UserID = id + 1,
         });
     }
 
-    public void RegisterLend(Book book, User user)
+    public void AddLoan (Loan loan)
     {
-        User? foundUser = users.FirstOrDefault(u => u.UserID == user.UserID);
-
-        if (foundUser != null)
-        {
-            foundUser.Borrow(book);
-        }
+        loans.Add(loan);
     }
 
-    public void RegisterReturn(Book book, User user)
+    public bool Exists (string name)
     {
-        User? userInfo = users.FirstOrDefault(u => u.UserID == user.UserID);
-        user.Return(book);
+        return users.Any(u => u.UserName == name);
     }
 
-    // mejorar
-    public void LoanHistory()
+    public bool UserIdExists(int id)
     {
-        Console.WriteLine("Book title\t\t\tLend Date\t\t\tReturn Date");
-        loans!.ForEach(lend => Console.WriteLine($"{lend.BookTitle}\t\t{lend.LendDate.ToString()}\t\t{lend.ReturnDate.ToString()}"));
+        return users.Exists(u => u.UserID == id);
+    }
+
+    public bool BookISBNExists(int isbn)
+    {
+        return books.Exists(b => b.ISBN == isbn);
+    }
+
+    public bool BookExists(string title)
+    {
+        return books.Exists(b => b.Title == title);
+    }
+
+    public bool ActiveLoan(string bookTitle)
+    {
+        return loans.Any(loan => loan.BookTitle == bookTitle && loan.ReturnDate == null);
+    }
+
+    public User? SearchByID(int id)
+    {
+        var user = users.FirstOrDefault(u => u.UserID == id);
+
+        return user;
+    }
+
+    public Book? FindBook(string filter)
+    {
+        var res = books.FirstOrDefault(book => book.Title!.Equals(filter));
+
+        return res;
     }
 };
